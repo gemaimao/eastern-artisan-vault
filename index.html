@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SPH 东方数字展厅 | Eastern Artisan Vault</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: #141418;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --gold: #d4af37;
+      --gold-dim: rgba(212, 175, 55, 0.15);
+      --text-main: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --accent: #27272a;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Segoe UI", Roboto, sans-serif;
+      padding-bottom: 80px;
+      overflow-x: hidden;
+    }
+
+    /* 顶部展厅大堂 Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(9, 9, 11, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px 20px;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-title span {
+      background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .badge-vault {
+      font-size: 10px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      background: var(--gold-dim);
+      color: var(--gold);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* 策展前言简标 */
+    .hero-banner {
+      padding: 16px 20px 8px;
+    }
+    .hero-banner p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* 分类标签横向滑动条 */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 12px 20px;
+      scrollbar-width: none;
+    }
+    .filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .filter-chip {
+      padding: 6px 14px;
+      background: var(--accent);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-chip.active {
+      background: var(--gold);
+      color: #000;
+      font-weight: 600;
+      border-color: var(--gold);
+    }
+
+    /* 展厅核心瀑布流 / 画廊网格 */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      padding: 12px 20px;
+    }
+
+    /* 展品卡片 */
+    .exhibit-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative;
+    }
+    .exhibit-card:active {
+      transform: scale(0.98);
+      border-color: var(--gold);
+    }
+    .card-media-wrapper {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      background: #18181b;
+      overflow: hidden;
+    }
+    .card-media-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s;
+    }
+    .exhibit-card:hover .card-media-wrapper img {
+      transform: scale(1.05);
+    }
+    .time-badge {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .tier-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .tier-badge.tier-s {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      border: none;
+    }
+    .tier-badge.tier-a {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border-color: #22c55e;
+    }
+
+    .card-content {
+      padding: 14px;
+    }
+    .card-creator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-desc-en {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      font-style: italic;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .btn-enter-exhibit {
+      padding: 4px 10px;
+      background: var(--accent);
+      border-radius: 6px;
+      color: var(--text-main);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* 展品详情沉浸式弹窗 (Modal) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(16px);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+    }
+    .modal-sheet {
+      width: 100%;
+      max-height: 85vh;
+      background: #121216;
+      border-top: 1px solid var(--card-border);
+      border-radius: 20px 20px 0 0;
+      padding: 24px 20px 40px;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .modal-header-tag {
+      font-size: 11px;
+      color: var(--gold);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .modal-audio-player {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .audio-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: none;
+      color: #000;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .audio-info {
+      flex: 1;
+    }
+    .audio-title {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .audio-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .modal-statement {
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 2px solid var(--gold);
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #e4e4e7;
+      margin-bottom: 16px;
+      font-style: italic;
+    }
+    .modal-statement-zh {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .prompt-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .prompt-btn {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--accent);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .prompt-btn:hover {
+      border-color: var(--gold);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 展厅头部 -->
+  <header>
+    <div class="header-top">
+      <div class="brand-title">
+        🏛️ <span>EASTERN ARTISAN VAULT</span>
+      </div>
+      <div class="badge-vault">Digital Museum</div>
+    </div>
+  </header>
+
+  <div class="hero-banner">
+    <p>精选中国顶级独立手艺人与乡野人文微纪录长片。已接入腾讯元宝多模态精读与英国国家地理纪录片英音导览。</p>
+  </div>
+
+  <!-- 分类导航条 -->
+  <div class="filter-bar">
+    <div class="filter-chip active" onclick="filterGallery('all', this)">全部展品 (All)</div>
+    <div class="filter-chip" onclick="filterGallery('wood', this)">榫卯营造 (Joinery)</div>
+    <div class="filter-chip" onclick="filterGallery('gold', this)">金工陶瓷 (Craft)</div>
+    <div class="filter-chip" onclick="filterGallery('rural', this)">乡土纪实 (Rural)</div>
+  </div>
+
+  <!-- 瀑布流 / 展品卡片墙 -->
+  <main class="gallery-grid" id="galleryGrid">
+
+    <!-- 展品 01: 黄金羽衣 (江寻千 S级) -->
+    <article class="exhibit-card" data-category="gold" onclick="openExhibit('gold_robe')">
+      <div class="card-media-wrapper">
+        <img src="assets/covers/gold_filigree.jpg" alt="花丝镶嵌黄金羽衣">
+        <span class="tier-badge tier-s">TIER S · 爆款</span>
+        <span class="time-badge">08:02</span>
+      </div>
+      <div class="card-content">
+        <div class="card-creator">👑 江寻千 (九月) · 燕京八绝</div>
+        <h3 class="card-title">《不是40万？？？你这衣服黄金做的啊！坏了，还真是》</h3>
+        <p class="card-desc-en">"Through extreme macro details, this piece centers on Huasi Xiangqian—the pinnacle of imperial craftsmanship."</p>
+        <div class="card-footer">
+          <span>花丝镶嵌 · 纯金掐丝</span>
+          <span class="btn-enter-exhibit">进入展台 ▸</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 展品 02: 百年风雨桥 (风情三江 A级) -->
+    <article class="exhibit-card" data-category="wood" onclick="openExhibit('wooden_bridge')">
+      <div class="card-media-wrapper">
+        <img src="assets/covers/wooden_bridge.jpg" alt="程阳风雨桥">
+        <span class="tier-badge tier-a">TIER A · 营造</span>
+        <span class="time-badge">04:51</span>
+      </div>
+      <div class="card-content">
+        <div class="card-creator">🌉 风情三江 · 广西三江</div>
+        <h3 class="card-title">《五代人与百年风雨桥的不解之缘》</h3>
+        <p class="card-desc-en">"Held together by nothing but wood locking into wood, one Dong family has guarded this marvel for five generations."</p>
+        <div class="card-footer">
+          <span>不用一钉一铁 · 巨型榫卯</span>
+          <span class="btn-enter-exhibit">进入展台 ▸</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 展品 03: 四季筋角弓 (归乡人山白 A级) -->
+    <article class="exhibit-card" data-category="wood" onclick="openExhibit('sinew_bow')">
+      <div class="card-media-wrapper">
+        <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&q=80" alt="四季筋角弓">
+        <span class="tier-badge tier-a">TIER A · 古兵器</span>
+        <span class="time-badge">15:29</span>
+      </div>
+      <div class="card-content">
+        <div class="card-creator">🏹 归乡人山白 · 传统古法</div>
+        <h3 class="card-title">《冬析干，春液角，夏治筋，秋合三材——筋角弓》</h3>
+        <p class="card-desc-en">"A Four-Season Ode to Ancestral Craftsmanship: composite bow making across winter, spring, summer, and autumn."</p>
+        <div class="card-footer">
+          <span>历经四季 · 复合传统弓</span>
+          <span class="btn-enter-exhibit">进入展台 ▸</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 展品 04: 茉莉花农 (遇真纪事 A级) -->
+    <article class="exhibit-card" data-category="rural" onclick="openExhibit('jasmine_farmers')">
+      <div class="card-media-wrapper">
+        <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80" alt="34万茉莉花农">
+        <span class="tier-badge tier-a">TIER A · 纪实</span>
+        <span class="time-badge">24:22</span>
+      </div>
+      <div class="card-content">
+        <div class="card-creator">🌾 遇真纪事 · 原生中国</div>
+        <h3 class="card-title">《从2024到2026，我连续3年记录34万茉莉花农的悲欢离合》</h3>
+        <p class="card-desc-en">"Jasmine opens after dark, so the growers live by the moon. For three years, following the hands behind the scent."</p>
+        <div class="card-footer">
+          <span>24分钟深度长片 · 无滤镜</span>
+          <span class="btn-enter-exhibit">进入展台 ▸</span>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- 展台详情模态窗口 -->
+  <div class="modal-overlay" id="exhibitModal" onclick="closeExhibit(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-header-tag" id="modalTag">EXHIBIT DETAILS</div>
+      <h2 class="modal-title" id="modalTitle">展品标题</h2>
+
+      <!-- 导览语音播放器 -->
+      <div class="modal-audio-player">
+        <button class="audio-btn" id="playAudioBtn" onclick="toggleAudio()">▶</button>
+        <div class="audio-info">
+          <div class="audio-title">策展人英文语音导览 (Curator Audio)</div>
+          <div class="audio-sub">英国国家地理级磁性配音 · Ryan · 25秒精读</div>
+        </div>
+        <audio id="audioElement" src=""></audio>
+      </div>
+
+      <!-- 策展导览词 -->
+      <div class="modal-statement" id="modalStatementEn">
+        "Curatorial statement goes here..."
+      </div>
+      <div class="modal-statement-zh" id="modalStatementZh">
+        中文译文释义...
+      </div>
+
+      <!-- 引导互动按钮 -->
+      <div style="font-size: 11px; font-weight: 600; color: var(--gold); margin-top: 14px;">💬 展台互动探讨 (Interactive Prompts)：</div>
+      <div class="prompt-buttons" id="modalPrompts">
+        <!-- 动态生成按钮 -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 展厅数据池
+    const exhibitsData = {
+      gold_robe: {
+        tag: "EXHIBIT 02 · 燕京八绝 · 金工极致",
+        title: "江寻千《花丝镶嵌黄金羽衣》",
+        audio: "assets/audio/gold_filigree.mp3",
+        statementEn: '"In this 8-minute visual ode, Jiang Xunqian confronts us with a contemporary paradox: the collision between modern consumerist anxiety and ancient imperial opulence. This piece is a testament to the patience of heritage, proving that true luxury lies not in weight, but in the weightlessness of skill."',
+        statementZh: "【核心剖析】：将纯金抽成 0.1 毫米细丝（比头发更细），全手工掐花、焊接成整件华服。打破“以为是土豪炫富，实际是大国工匠”的世俗偏见，向世界呈现真正的东方奢侈品。",
+        prompts: [
+          "💎 什么是中国宫廷“燕京八绝”之首花丝镶嵌？",
+          "⚖️ 0.1毫米细如发丝的金线，如何纯手工织成衣服？",
+          "🎬 查看海外 YouTube 病毒式发布标题方案"
+        ]
+      },
+      wooden_bridge: {
+        tag: "EXHIBIT 01 · 侗族营造 · 建筑奇观",
+        title: "风情三江《一百年·一座桥·五代人》",
+        audio: "assets/audio/wooden_bridge.mp3",
+        statementEn: '"Beyond a UNESCO-worthy wooden marvel, it is a palimpsest of collective memory, where each mortise and tenon whispers resistance against time. Witness how ancestral wisdom dances with modernity, not in surrender, but in poetic resilience."',
+        statementZh: "【核心剖析】：整座程阳风雨桥横跨百米江面，不着一钉一铁，全靠木构咬合。杨氏家族五代人代代接力修缮守护，展现人与建筑共生的非遗史诗。",
+        prompts: [
+          "🏛️ 侗族榫卯与日本细木工的哲学差异何在？",
+          "🌉 为什么五代人只守一座桥？",
+          "🎧 播放完整英音纪录片解说"
+        ]
+      },
+      sinew_bow: {
+        tag: "EXHIBIT 03 · 传统兵器 · 时令哲学",
+        title: "归乡人山白《四季筋角弓》",
+        audio: "assets/audio/sinew_bow.mp3",
+        statementEn: '"Winter’s split wood, spring’s boiled horn, summer’s treated sinew, and autumn’s sacred convergence. A cinematic tribute to slowness as sanctity, where every frame hums with the rhythm of nature’s cycles."',
+        statementZh: "【核心剖析】：严格遵循“冬析干、春液角、夏治筋、秋合三材”的千年前造弓古法。历时整整四季只为打造一把传统复合弓，传达顺应天时的东方匠魂。",
+        prompts: [
+          "🏹 传统角弓与现代玻璃纤维复合弓的威力差异？",
+          "⏳ 为什么一把弓必须横跨四季才能做完？"
+        ]
+      },
+      jasmine_farmers: {
+        tag: "EXHIBIT 04 · 原生中国 · 深度纪实",
+        title: "遇真纪事《34万茉莉花农的三年》",
+        audio: "assets/audio/jasmine_farmers.mp3",
+        statementEn: '"Jasmine opens after dark, so the people who grow it live by the moon. For three years, following the hands behind the scent: dawn scales, fluctuating prices, and unvarnished lives."',
+        statementZh: "【核心剖析】：24分钟长片，无任何滤镜与说教，实地跟踪广西横州花农三年的起伏跌宕。还原每一杯茉莉花茶背后真实的中国农民生存剖面。",
+        prompts: [
+          "🌙 为什么茉莉花必须在深夜摸黑采摘？",
+          "🌾 24分钟未剪辑纪录长片如何直通国际影展？"
+        ]
+      }
+    };
+
+    // 分类筛选
+    function filterGallery(category, el) {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+
+      const cards = document.querySelectorAll('.exhibit-card');
+      cards.forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // 展品弹窗
+    function openExhibit(key) {
+      const data = exhibitsData[key];
+      if (!data) return;
+
+      document.getElementById('modalTag').innerText = data.tag;
+      document.getElementById('modalTitle').innerText = data.title;
+      document.getElementById('modalStatementEn').innerText = data.statementEn;
+      document.getElementById('modalStatementZh').innerText = data.statementZh;
+
+      const audio = document.getElementById('audioElement');
+      audio.src = data.audio;
+      document.getElementById('playAudioBtn').innerText = '▶';
+
+      const promptsContainer = document.getElementById('modalPrompts');
+      promptsContainer.innerHTML = '';
+      data.prompts.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'prompt-btn';
+        btn.innerHTML = `<span>${p}</span><span>▸</span>`;
+        btn.onclick = () => alert(`【展台AI导览解答】：\n针对 "${p}" 的深度解析已就绪。`);
+        promptsContainer.appendChild(btn);
+      });
+
+      document.getElementById('exhibitModal').style.display = 'flex';
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+      }
+    }
+
+    function closeModal() {
+      const audio = document.getElementById('audioElement');
+      audio.pause();
+      document.getElementById('exhibitModal').style.display = 'none';
+    }
+
+    function closeExhibit(e) {
+      if (e.target.id === 'exhibitModal') {
+        closeModal();
+      }
+    }
+
+    function toggleAudio() {
+      const audio = document.getElementById('audioElement');
+      const btn = document.getElementById('playAudioBtn');
+      if (audio.paused) {
+        audio.play();
+        btn.innerText = '⏸';
+      } else {
+        audio.pause();
+        btn.innerText = '▶';
+      }
+    }
+
+    // 初始化 Telegram WebApp 环境
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+  </script>
+</body>
+</html>
