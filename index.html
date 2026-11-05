@@ -500,6 +500,7 @@
     <div class="filter-chip" onclick="filterGallery('wood', this)">榫卯营造 (Joinery)</div>
     <div class="filter-chip" onclick="filterGallery('gold', this)">金工陶瓷 (Craft)</div>
     <div class="filter-chip" onclick="filterGallery('rural', this)">乡土纪实 (Rural)</div>
+    <div class="filter-chip" onclick="filterGallery('spiritual', this)">身心修行 (Spiritual)</div>
   </div>
 
   <!-- 瀑布流 / 展品卡片墙 -->
@@ -572,6 +573,24 @@
         <p class="card-desc-en">"Jasmine opens after dark, so the growers live by the moon. For three years, following the hands behind the scent."</p>
         <div class="card-footer">
           <span>24分钟深度长片 · 无滤镜</span>
+          <span class="btn-enter-exhibit">进入展台 ▸</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 展品 05: 姜颜 两千年修行 (大师姐姜颜 A级) -->
+    <article class="exhibit-card" data-category="spiritual" onclick="openExhibit('jiangyan')">
+      <div class="card-media-wrapper">
+        <img src="assets/covers/jiangyan.jpg" alt="你的两千年修行之路">
+        <span class="tier-badge tier-a">TIER A · 哲学标杆</span>
+        <span class="time-badge">14:54</span>
+      </div>
+      <div class="card-content">
+        <div class="card-creator">🧘 大师姐姜颜 · 道医内观</div>
+        <h3 class="card-title">《你的两千年修行之路》</h3>
+        <p class="card-desc-en">"Journey through two millennia of Taoist cultivation, where stillness births wisdom, and silence speaks eternity."</p>
+        <div class="card-footer">
+          <span>15分钟电影横屏 · 性命双修</span>
           <span class="btn-enter-exhibit">进入展台 ▸</span>
         </div>
       </div>
@@ -693,6 +712,18 @@
           "🌙 为什么茉莉花必须在深夜摸黑采摘？",
           "🌾 24分钟未剪辑纪录长片如何直通国际影展？"
         ]
+      },
+      jiangyan: {
+        tag: "EXHIBIT 05 · 东方心智 · 身心修行",
+        title: "大师姐姜颜《你的两千年修行之路》",
+        audio: "assets/audio/jiangyan.mp3",
+        statementEn: '"Journey through two millennia of Taoist cultivation, this meditative visual documentary unveils the inner alchemy and spiritual discipline of a master disciple in Chengdu. Through minimalist cinematography, it invites global audiences to witness the Taoist pursuit of harmony between body and cosmos—where stillness births wisdom, and silence speaks eternity."',
+        statementZh: "【核心剖析】：以成都为在地灵性场域，聚焦两千年道家修行者的精神内观之路，融合中式极简美学，展现“静定生慧、性命双修”的东方生命境界。",
+        prompts: [
+          "🧘 什么是道家“性命双修”与内观修行？",
+          "🏔️ 为什么青城山与成都自古是修行圣境？",
+          "🎧 播放完整英音纪录片解说"
+        ]
       }
     };
 
@@ -730,6 +761,10 @@
         ],
         jasmine_farmers: [
           { user: "Sarah_TeaLover", text: "I will never look at my morning cup of jasmine tea the same way again." }
+        ],
+        jiangyan: [
+          { user: "Oliver_Zurich", text: "The concept of 'quietude giving birth to wisdom' is what modern society desperately lacks." },
+          { user: "Mei_Vancouver", text: "横屏构图太绝了，有种古画徐徐展开的宁静感。" }
         ]
       }
     };
