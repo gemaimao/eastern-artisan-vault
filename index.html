@@ -287,6 +287,117 @@
       margin-bottom: 12px;
       line-height: 1.3;
     }
+    /* 展台互动动作栏 (Like, Collect, Comment, Share) */
+    .modal-action-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 14px 0 16px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+    .action-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .action-item:active {
+      transform: scale(0.92);
+    }
+    .action-item.liked {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.12);
+    }
+    .action-item.collected {
+      color: var(--gold);
+      background: var(--gold-dim);
+    }
+
+    /* 评论讨论区 */
+    .comments-section {
+      margin-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 16px;
+    }
+    .comments-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .btn-goto-forum {
+      font-size: 11px;
+      color: var(--gold);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .comment-input-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .comment-input {
+      flex: 1;
+      background: var(--accent);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+    }
+    .comment-input:focus {
+      border-color: var(--gold);
+    }
+    .comment-send-btn {
+      padding: 8px 14px;
+      background: var(--gold);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .comment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .comment-card {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+    .comment-user {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      color: #e4e4e7;
+      margin-bottom: 3px;
+      font-size: 11px;
+    }
+    .comment-text {
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
     .modal-audio-player {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -475,6 +586,22 @@
       <div class="modal-header-tag" id="modalTag">EXHIBIT DETAILS</div>
       <h2 class="modal-title" id="modalTitle">展品标题</h2>
 
+      <!-- 互动动作栏: 点赞、收藏、评论、分享 -->
+      <div class="modal-action-bar">
+        <button class="action-item" id="likeBtn" onclick="toggleLike()">
+          <span id="likeIcon">🤍</span> <span id="likeCount">1.4k</span>
+        </button>
+        <button class="action-item" id="collectBtn" onclick="toggleCollect()">
+          <span id="collectIcon">☆</span> <span>收藏</span>
+        </button>
+        <button class="action-item" onclick="scrollToComments()">
+          <span>💬</span> <span id="commentCountBadge">18条讨论</span>
+        </button>
+        <button class="action-item" style="margin-left: auto;" onclick="shareExhibit()">
+          <span>↗️</span> <span>分享</span>
+        </button>
+      </div>
+
       <!-- 导览语音播放器 -->
       <div class="modal-audio-player">
         <button class="audio-btn" id="playAudioBtn" onclick="toggleAudio()">▶</button>
@@ -497,6 +624,23 @@
       <div style="font-size: 11px; font-weight: 600; color: var(--gold); margin-top: 14px;">💬 展台互动探讨 (Interactive Prompts)：</div>
       <div class="prompt-buttons" id="modalPrompts">
         <!-- 动态生成按钮 -->
+      </div>
+
+      <!-- 评论与社群分馆讨论区 -->
+      <div class="comments-section" id="commentsSection">
+        <div class="comments-header">
+          <span>🏛️ 展馆现场讨论</span>
+          <a href="#" class="btn-goto-forum" onclick="gotoTelegramForum()">
+            <span>进 Telegram 对应分馆</span> <span>▸</span>
+          </a>
+        </div>
+        <div class="comment-input-box">
+          <input type="text" class="comment-input" id="newCommentInput" placeholder="写下你的观展感想..." onkeypress="if(event.key==='Enter') submitComment()">
+          <button class="comment-send-btn" onclick="submitComment()">发评</button>
+        </div>
+        <div class="comment-list" id="commentList">
+          <!-- 动态评论卡片 -->
+        </div>
       </div>
     </div>
   </div>
@@ -567,8 +711,32 @@
       });
     }
 
+    let currentExhibitKey = null;
+    const userInteractions = {
+      likes: {},
+      collected: {},
+      comments: {
+        gold_robe: [
+          { user: "Arthur_M (London)", text: "0.1mm gold wire woven by hand? This belongs in the Victoria and Albert Museum." },
+          { user: "Claire_Paris", text: "L’élégance absolue. The contrast between gold and black background is breathtaking." },
+          { user: "Kenji_Tokyo", text: "中国的花丝镶嵌比京都细金工还要细，神乎其技。" }
+        ],
+        wooden_bridge: [
+          { user: "Marcus_Woodworker", text: "No nails in a structure that large? The load distribution on those cantilever joints is pure engineering genius." },
+          { user: "Elena_Berlin", text: "5 generations guarding one bridge... that is true intangible heritage." }
+        ],
+        sinew_bow: [
+          { user: "Bowyer_Finn", text: "Waiting four seasons for the natural curing of fish glue and horn. Pure respect." }
+        ],
+        jasmine_farmers: [
+          { user: "Sarah_TeaLover", text: "I will never look at my morning cup of jasmine tea the same way again." }
+        ]
+      }
+    };
+
     // 展品弹窗
     function openExhibit(key) {
+      currentExhibitKey = key;
       const data = exhibitsData[key];
       if (!data) return;
 
@@ -576,6 +744,22 @@
       document.getElementById('modalTitle').innerText = data.title;
       document.getElementById('modalStatementEn').innerText = data.statementEn;
       document.getElementById('modalStatementZh').innerText = data.statementZh;
+
+      // 状态恢复
+      const isLiked = userInteractions.likes[key];
+      const isCollected = userInteractions.collected[key];
+      const likeBtn = document.getElementById('likeBtn');
+      const collectBtn = document.getElementById('collectBtn');
+      
+      likeBtn.className = 'action-item' + (isLiked ? ' liked' : '');
+      document.getElementById('likeIcon').innerText = isLiked ? '❤️' : '🤍';
+      document.getElementById('likeCount').innerText = isLiked ? '1.4k+1' : '1.4k';
+
+      collectBtn.className = 'action-item' + (isCollected ? ' collected' : '');
+      document.getElementById('collectIcon').innerText = isCollected ? '★' : '☆';
+
+      // 渲染评论列表
+      renderComments(key);
 
       const audio = document.getElementById('audioElement');
       audio.src = data.audio;
@@ -595,6 +779,84 @@
       if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
       }
+    }
+
+    function toggleLike() {
+      if (!currentExhibitKey) return;
+      userInteractions.likes[currentExhibitKey] = !userInteractions.likes[currentExhibitKey];
+      const isLiked = userInteractions.likes[currentExhibitKey];
+      const btn = document.getElementById('likeBtn');
+      btn.className = 'action-item' + (isLiked ? ' liked' : '');
+      document.getElementById('likeIcon').innerText = isLiked ? '❤️' : '🤍';
+      document.getElementById('likeCount').innerText = isLiked ? '1.4k+1' : '1.4k';
+
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred(isLiked ? 'success' : 'warning');
+      }
+    }
+
+    function toggleCollect() {
+      if (!currentExhibitKey) return;
+      userInteractions.collected[currentExhibitKey] = !userInteractions.collected[currentExhibitKey];
+      const isCol = userInteractions.collected[currentExhibitKey];
+      const btn = document.getElementById('collectBtn');
+      btn.className = 'action-item' + (isCol ? ' collected' : '');
+      document.getElementById('collectIcon').innerText = isCol ? '★' : '☆';
+
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+      }
+    }
+
+    function renderComments(key) {
+      const list = userInteractions.comments[key] || [];
+      const container = document.getElementById('commentList');
+      container.innerHTML = '';
+      document.getElementById('commentCountBadge').innerText = `${list.length}条现场讨论`;
+
+      list.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'comment-card';
+        el.innerHTML = `<div class="comment-user"><span>${c.user}</span><span>刚刚</span></div><div class="comment-text">${c.text}</div>`;
+        container.appendChild(el);
+      });
+    }
+
+    function submitComment() {
+      const input = document.getElementById('newCommentInput');
+      const val = input.value.trim();
+      if (!val || !currentExhibitKey) return;
+
+      if (!userInteractions.comments[currentExhibitKey]) {
+        userInteractions.comments[currentExhibitKey] = [];
+      }
+      userInteractions.comments[currentExhibitKey].unshift({
+        user: "你 (Telegram观众)",
+        text: val
+      });
+      input.value = '';
+      renderComments(currentExhibitKey);
+
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+      }
+    }
+
+    function scrollToComments() {
+      document.getElementById('commentsSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function shareExhibit() {
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=https://gemaimao.github.io/eastern-artisan-vault/&text=🏛️来看看这个绝美的东方数字展厅！`);
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert("展品链接已复制到剪贴板！");
+      }
+    }
+
+    function gotoTelegramForum() {
+      alert("即将跳转至 Telegram 【主题分馆/BBS讨论群】！\n在这里可以与全球同好深度发帖探讨、交流技艺。");
     }
 
     function closeModal() {
