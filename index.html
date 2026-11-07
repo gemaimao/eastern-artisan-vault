@@ -596,6 +596,24 @@
       </div>
     </article>
 
+    <!-- 展品 06: 乌英苗寨 (柳州1号 A级) -->
+    <article class="exhibit-card" data-category="rural" onclick="openExhibit('wuying_miao_village')">
+      <div class="card-media-wrapper">
+        <img src="assets/covers/wuying_miao_village.jpg" alt="新声·乌英苗寨女性识字纪实">
+        <span class="tier-badge tier-a">TIER A · 普世共鸣</span>
+        <span class="time-badge">22:36</span>
+      </div>
+      <div class="card-content">
+        <div class="card-creator">🌱 柳州1号 · 民族村寨巨变</div>
+        <h3 class="card-title">《新声：年近半百的她们走进课堂，只为获得一次“新声”》</h3>
+        <p class="card-desc-en">"In the misty karst highlands, women nearing fifty step into night schools. A quiet ode to literacy, agency, and late-blooming dreams."</p>
+        <div class="card-footer">
+          <span>22分钟深度纪录长片 · 平权史诗</span>
+          <span class="btn-enter-exhibit">进入展台 ▸</span>
+        </div>
+      </div>
+    </article>
+
   </main>
 
   <!-- 展台详情模态窗口 -->
@@ -722,6 +740,18 @@
         prompts: [
           "🧘 什么是道家“性命双修”与内观修行？",
           "🏔️ 为什么青城山与成都自古是修行圣境？",
+          "🎧 播放完整英音纪录片解说"
+        ]
+      },
+      wuying_miao_village: {
+        tag: "EXHIBIT 06 · 民族村寨 · 平权史诗",
+        title: "柳州1号《新声·乌英苗寨女性识字纪实》",
+        audio: "assets/audio/wuying_miao_village.mp3",
+        statementEn: '"In the misty highlands of Guangxi, where limestone karsts cradle ancient Miao villages, a quiet revolution unfolds at dusk. New Voices follows women nearing fifty—grandmothers and mothers who once stitched silence into their daily toil—as they step into classrooms, fingers tracing characters like delicate embroidery on rice paper. Through their trembling hands and newly awakened eyes, we witness not just literacy, but the birth of agency: a collective reclamation of identity amid rugged landscapes. Director captures this metamorphosis with poetic minimalism: chalk dust floating like pollen, laughter echoing against wooden desks, and the silhouette of a grandmother reading aloud under a bamboo moon. A universal ode to late-blooming dreams in the margins of modernity."',
+        statementZh: "【核心剖析】：年近半百的苗族女性突破传统束缚，在夜校教室里第一次拿起粉笔识字。个体生命的觉醒与民族村寨现代化进程交织，展现教育平权与文化坚韧的普世人性之光。",
+        prompts: [
+          "🌱 为什么年近半百的苗寨女性选择重新走进课堂？",
+          "📖 影片中“粉笔灰”与“竹影月光”的意象代表什么？",
           "🎧 播放完整英音纪录片解说"
         ]
       }
@@ -891,7 +921,11 @@
     }
 
     function gotoTelegramForum() {
-      alert("即将跳转至 Telegram 【主题分馆/BBS讨论群】！\n在这里可以与全球同好深度发帖探讨、交流技艺。");
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.openTelegramLink("https://t.me/EasternArtisanVault");
+      } else {
+        window.open("https://t.me/EasternArtisanVault", "_blank");
+      }
     }
 
     function closeModal() {
